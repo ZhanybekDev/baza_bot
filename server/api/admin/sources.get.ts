@@ -1,3 +1,4 @@
+import { defineEventHandler } from 'h3'
 import { prisma } from '../../db/client.js'
 
 // Источники базы знаний + статус последнего прогона ingest (для дашборда админки).

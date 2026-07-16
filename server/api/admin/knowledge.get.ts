@@ -1,3 +1,4 @@
+import { defineEventHandler, getQuery } from 'h3'
 import { prisma } from '../../db/client.js'
 import { PROJECTS } from '../../registry/projects.js'
 

@@ -1,3 +1,4 @@
+import { defineEventHandler, getQuery } from 'h3'
 import { prisma } from '../../db/client.js'
 
 const PAGE_SIZE = 20

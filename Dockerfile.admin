@@ -1,0 +1,26 @@
+# Админка (Nuxt SSR) для BAZA-бота: источники, база знаний, история диалогов.
+# FROM playwright — чтобы кнопка «переобновить» могла поднять headed chromium под
+# xvfb (best.baza.bz и партнёрский портал блокируют headless — см. hard-rules #8).
+FROM mcr.microsoft.com/playwright:v1.61.1-noble
+
+WORKDIR /app
+RUN corepack enable
+
+# Схему копируем до install: postinstall у prisma генерирует клиент.
+# prisma.config.ts резолвит DATABASE_URL при загрузке — заглушка на время сборки,
+# реальный URL приходит в runtime через compose.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml prisma.config.ts ./
+COPY prisma ./prisma
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+RUN pnpm install --frozen-lockfile
+
+COPY server ./server
+COPY app ./app
+COPY nuxt.config.ts components.json ./
+RUN pnpm build
+
+# reingest поднимает headed chromium под виртуальным дисплеем.
+ENV INGEST_COMMAND="xvfb-run -a pnpm ingest"
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
+CMD ["node", ".output/server/index.mjs"]
