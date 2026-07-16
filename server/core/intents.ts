@@ -1,0 +1,58 @@
+// Интенты из таблицы тест-кейсов заказчика. Детекция по основам ключевых слов —
+// подстрочный матч ловит падежи («рассрочку», «ипотеке», «комиссии»).
+//
+// Приоритет интента над проектом (тест-кейсы «первоначалка на ДМД2», «КВ по Алисе»
+// дают canned, а не пересказ корпуса) — обеспечивается в router.ts.
+
+export type IntentId =
+  | 'objections'
+  | 'fixation'
+  | 'deal'
+  | 'installment'
+  | 'mortgage'
+  | 'commission'
+  | 'contacts'
+
+export interface IntentDef {
+  id: IntentId
+  pattern: RegExp
+  /** Ответ зависит от региона (партнёрская страница / менеджер). */
+  needsRegion: boolean
+}
+
+// Порядок = приоритет при пересечении. Специфичное раньше общего:
+// рассрочка раньше ипотеки (у обеих есть «ПВ»), фиксация раньше сделки.
+const INTENTS: IntentDef[] = [
+  { id: 'objections', pattern: /возражени/i, needsRegion: false },
+  { id: 'fixation', pattern: /фиксац|зафиксир|закрепи\w* клиент|бронир|забронир/i, needsRegion: true },
+  {
+    id: 'deal',
+    pattern: /сделк|электронн\w* регистрац|эл\.?\s*регистрац|(?:^|[^а-яa-z])дкп(?:$|[^а-яa-z])|документы для|список документов|оформить сделк|выход на сделк/i,
+    needsRegion: false,
+  },
+  { id: 'installment', pattern: /рассрочк|первоначалк/i, needsRegion: true },
+  {
+    id: 'mortgage',
+    pattern: /ипотек|ипотечн|первоначальн\w* взнос|(?:^|[^а-яa-z])пв(?:$|[^а-яa-z])|семейн\w* ипотек|транш|комбо|субсид|льготн|военн\w* ипотек|it-?ипотек|айти[- ]?ипотек|господдержк|банки[- ]партн/i,
+    needsRegion: true,
+  },
+  {
+    id: 'commission',
+    pattern: /(?:^|[^а-яa-z])(кв|ав)(?:$|[^а-яa-z])|комисси|вознагражд|сколько платите|процент вознагражд|размер вознагражд/i,
+    needsRegion: false,
+  },
+  {
+    id: 'contacts',
+    pattern: /менеджер|к кому обрат|кому .{0,20}(по)?звонить|как связаться|сотрудничеств|контакт(ы|ного)?/i,
+    needsRegion: true,
+  },
+]
+
+/** Определяет интент по тексту (первый по приоритету). null — не canned-тема. */
+export function detectIntent(text: string): IntentDef | null {
+  const normalized = text.toLowerCase().replace(/ё/g, 'е')
+  for (const intent of INTENTS) {
+    if (intent.pattern.test(normalized)) return intent
+  }
+  return null
+}
