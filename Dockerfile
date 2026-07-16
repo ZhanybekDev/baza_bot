@@ -5,7 +5,11 @@ WORKDIR /app
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# network-concurrency=1 + retries: сервер рвёт параллельную загрузку крупных пакетов (Prisma).
+RUN pnpm config set fetch-retries 5 \
+ && pnpm config set fetch-retry-maxtimeout 120000 \
+ && pnpm config set network-concurrency 1 \
+ && pnpm install --frozen-lockfile
 
 COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json ./
