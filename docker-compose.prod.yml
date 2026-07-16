@@ -1,0 +1,54 @@
+# Продакшн-стек для домашнего сервера (Ubuntu 24.04).
+# Бот работает через long polling — публичный HTTPS/webhook не нужен.
+#
+# Запуск:
+#   docker compose -f docker-compose.prod.yml up -d db
+#   docker compose -f docker-compose.prod.yml run --rm migrate
+#   docker compose -f docker-compose.prod.yml run --rm ingest   # наполнить базу
+#   docker compose -f docker-compose.prod.yml up -d bot
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: baza_bot_prod_db
+    environment:
+      POSTGRES_USER: baza
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: baza_bot
+    volumes:
+      - baza_bot_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U baza -d baza_bot']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    build: { context: ., dockerfile: Dockerfile }
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgresql://baza:${POSTGRES_PASSWORD}@db:5432/baza_bot?schema=public
+    command: ['pnpm', 'prisma:migrate']
+    restart: 'no'
+
+  ingest:
+    build: { context: ., dockerfile: Dockerfile.ingest }
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgresql://baza:${POSTGRES_PASSWORD}@db:5432/baza_bot?schema=public
+      BOTHUB_API_KEY: ${BOTHUB_API_KEY:?}
+      BOTHUB_BASE_URL: ${BOTHUB_BASE_URL:-https://bothub.chat/api/v2/openai/v1}
+    restart: 'no'
+
+  bot:
+    build: { context: ., dockerfile: Dockerfile }
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgresql://baza:${POSTGRES_PASSWORD}@db:5432/baza_bot?schema=public
+      BOTHUB_API_KEY: ${BOTHUB_API_KEY:?}
+      BOTHUB_BASE_URL: ${BOTHUB_BASE_URL:-https://bothub.chat/api/v2/openai/v1}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?}
+    restart: unless-stopped
+
+volumes:
+  baza_bot_prod_pgdata:

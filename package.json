@@ -13,6 +13,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare && prisma generate",
     "ingest": "tsx server/ingest/run.ts",
+    "bot": "tsx server/bot/run.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "test": "vitest run",
