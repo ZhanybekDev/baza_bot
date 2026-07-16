@@ -34,6 +34,14 @@
 
 ## Сделано (recent)
 
+- **2026-07-16 (ночь)** — **Часть 2 ТЗ (админка) — код готов, собран, все гейты зелёные** (ветка `feat/admin`, 2 коммита):
+  - shadcn-vue (new-york, neutral, Tailwind v4) — UI-компоненты написаны вручную (CLI shadcn падал на несуществующем `@lucide/vue`).
+  - 3 страницы: `/admin` (источники + статус парсинга + кнопка «переобновить» с поллингом), `/admin/knowledge` (чанки по проектам, фильтр+поиск, пагинация), `/admin/dialogs` (история диалогов).
+  - 4 Nitro-роута (`server/api/admin/`): sources/knowledge/dialogs/reingest. Явные импорты из `h3` (не auto-import — иначе `vue-tsc -p tsconfig.json` не видит Nitro-глобалы).
+  - `eslint` 0, `vue-tsc` 0, `nuxt build` OK. Все страницы → 200 на живой БД (642 чанка). Диалогов локально 0 (норм — на проде бот живой).
+  - Деплой-артефакты: `Dockerfile.admin` (FROM playwright — reingest поднимает headed chromium под xvfb), сервис `admin` в `docker-compose.prod.yml` (порт `127.0.0.1:3000`), образ `baza-bot-admin:prod` собран под linux/amd64. Runbook — `docs/deploy-admin.md`.
+  - **НЕ доведено до публичной ссылки автономно:** Cloudflare Tunnel конфиг на сервере вне репо + SSH-юзер не задокументирован + выставление наружу подтверждаем руками.
+- **Часть 3 (Figma) — заблокирована на OAuth** Figma MCP (нужен браузер пользователя; auth URL живёт минуты, пре-генерировать бессмысленно).
 - **2026-07-16** — **Часть 1 ТЗ реализована по коду** (Phase 1–3 плана в `main`, 13 коммитов):
   - Phase 1: реестр (13 проектов, 17 источников) + ingest (642 чанка по 6 ЖК, дедуп, идемпотентность).
   - Phase 2: ядро ответа (интент-роутер + project-scoped RAG + canned) — 30 unit-тестов, 11/12 acceptance на живой БД. Бот `@baza_parthners_bot` (grammY long polling) работает локально.
@@ -53,7 +61,9 @@
   - `pnpm minimumReleaseAge` блокировал свежие Vue-пакеты — exclude-список в `pnpm-workspace.yaml` (защита сохранена).
   - Dockerfile: `install --ignore-scripts` (postinstall требует schema), openssl (Prisma engine), dummy `DATABASE_URL` для build-time generate, без `tsconfig.json` (extends `.nuxt`).
   - Сервер: `docker-compose.prod.yml` + `docker-compose.deploy.yml` (override `image:` вместо `build:`, не в git). SSH через Tailscale `<SERVER_HOST>`.
-- Далее по ТЗ: **Часть 2** (админка shadcn), **Часть 3** (страница Figma) — когда пользователь скажет.
+- **Часть 2 (админка)** — код готов на `feat/admin`, образ собран. Осталось (руками, с пользователем, ~10 мин): перенести образ на сервер (`docker save|ssh docker load`), `up -d admin`, ingress-правило в Cloudflare Tunnel → публичная ссылка, Cloudflare Access перед панелью (авторизации у неё нет). Шаги — `docs/deploy-admin.md`.
+- **Часть 3 (Figma)** — ждёт авторизацию Figma MCP пользователем (OAuth в браузере), затем страницу собрать по макету Elvikom `node-id=0-1`.
+- **Доступ к серверу проверен:** ping + SSH-порт 22 открыты через Tailscale `<SERVER_HOST>` (заметка «Tailscale не поднят» — устарела). SSH-пользователь в проекте не задокументирован — спросить у пользователя.
 
 ---
 
@@ -104,11 +114,11 @@
 
 ## Последняя сессия — summary
 
-- **Дата:** 2026-07-16
-- **Что делали:** 13 кругов планирования+ревью, план APPROVED; инициализация проекта (init-full).
-- **Что не успели:** код Phase 1 (следующий шаг).
-- **Блокеры:** нет.
-- **Next:** `git init` → `/ship-it` Phase 1 (реестр + ingest).
+- **Дата:** 2026-07-16 (ночная автономная сессия)
+- **Что делали:** Часть 2 (админка) целиком — 3 страницы + 4 API, shadcn-vue, все гейты зелёные, деплой-артефакты + образ + runbook. Обновлён MEMORY.
+- **Что не успели:** публичный деплой админки (нужен SSH-юзер + Cloudflare Tunnel — с пользователем); Часть 3 (Figma OAuth — нужен браузер пользователя).
+- **Блокеры:** SSH-юзер сервера не задокументирован; Figma MCP не авторизован.
+- **Next:** утром — задеплоить админку по `docs/deploy-admin.md` (спросить SSH-юзер), авторизовать Figma MCP → собрать Часть 3, влить `feat/admin` в `main`, запушить на GitHub.
 
 ---
 
