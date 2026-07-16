@@ -8,3 +8,6 @@ dist/
 .DS_Store
 prisma/generated/
 /tmp/
+
+# Prisma generated client (создаётся postinstall)
+server/generated/

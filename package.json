@@ -1,0 +1,52 @@
+{
+  "name": "baza-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && prisma generate",
+    "ingest": "tsx server/ingest/run.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "dotenv": "17.4.2",
+    "exceljs": "4.4.0",
+    "fast-xml-parser": "5.10.1",
+    "fflate": "0.8.3",
+    "grammy": "1.44.0",
+    "mammoth": "1.12.0",
+    "nuxt": "4.4.8",
+    "openai": "6.47.0",
+    "pg": "8.22.0",
+    "pgvector": "0.3.0",
+    "playwright": "1.61.1",
+    "unpdf": "1.6.2",
+    "vue": "3.5.40"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "1.16.0",
+    "@types/pg": "8.20.0",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "10.7.0",
+    "prisma": "7.8.0",
+    "tsx": "4.23.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "vue-tsc": "3.1.4"
+  }
+}
