@@ -1,0 +1,118 @@
+// Prisma 7: ESM-генератор, driver adapter обязателен (@prisma/adapter-pg).
+// Конфиг вынесен в prisma.config.ts; datasource.url нужен только для migrate.
+generator client {
+  provider     = "prisma-client"
+  output       = "../server/generated/prisma"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Region {
+  EKB
+  MSK
+  BALI
+}
+
+enum ProjectKind {
+  DEVELOPER // BAZA строит сама (есть презентации застройщика)
+  AGENCY // BAZA продаёт как агентство недвижимости (презентаций нет — это не пробел)
+}
+
+enum DocStatus {
+  OK
+  NEEDS_OCR // скан без текстового слоя — помечается громко, не даёт пустых чанков
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+/// Реестр проектов. Сидируется из server/registry/projects.ts при каждом ingest.
+/// Единственный источник истины об атрибуции, регионе и комиссии.
+model Project {
+  id       String      @id // slug: "alisa", "dmd1", "bestseller"
+  name     String
+  aliases  String[] // регистронезависимые, из справочника заказчика
+  region   Region
+  kind     ProjectKind
+
+  // Комиссия — структура, не число: base + bonus на выбор (себе или скидкой клиенту).
+  feeBase     Float?
+  feeBonus    Float?
+  feeBonusRule String?
+  feeSource   String? // откуда взята истина, напр. "/ekb/svod"
+
+  sources   Source[]
+  documents Document[]
+  chunks    Chunk[]
+}
+
+/// Физический источник данных (URL). Фиксированные — из registry/sources.ts,
+/// страницы портала — из обхода дерева.
+model Source {
+  id        String     @id @default(cuid())
+  url       String     @unique
+  title     String?
+  projectId String?
+  project   Project?   @relation(fields: [projectId], references: [id])
+  documents Document[]
+  createdAt DateTime   @default(now())
+}
+
+/// Распарсенный документ. Дедуп по contentHash: один и тот же контент
+/// (напр. «Презентация Бестселлер» из двух ссылок) = один Document.
+model Document {
+  id          String    @id @default(cuid())
+  sourceId    String
+  source      Source    @relation(fields: [sourceId], references: [id])
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  title       String
+  contentHash String    @unique // sha256 сырого текста — идемпотентность + дедуп
+  rawText     String
+  charCount   Int
+  status      DocStatus @default(OK)
+  chunks      Chunk[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Чанк для поиска. section — раздел/лист/страница (structure-aware).
+model Chunk {
+  id             String                       @id @default(cuid())
+  documentId     String
+  document       Document                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?                     @relation(fields: [projectId], references: [id])
+  section        String
+  content        String
+  sourcePriority Int                          @default(0)
+  // Колонка vector(1024) создаётся вручную в миграции (CREATE EXTENSION vector).
+  // Опциональное поле обязательно: Unsupported невидим клиенту, required сломал бы create().
+  embedding      Unsupported("vector(1024)")?
+  createdAt      DateTime                     @default(now())
+
+  @@index([projectId])
+}
+
+/// Лог прогона ingest — виден статус, счётчики, needs_ocr.
+model IngestRun {
+  id              String     @id @default(cuid())
+  startedAt       DateTime   @default(now())
+  finishedAt      DateTime?
+  status          RunStatus  @default(RUNNING)
+  sourcesTotal    Int        @default(0)
+  sourcesOk       Int        @default(0)
+  sourcesFailed   Int        @default(0)
+  documentsNew    Int        @default(0)
+  documentsReused Int        @default(0)
+  chunksTotal     Int        @default(0)
+  needsOcr        Int        @default(0)
+  log             String     @default("")
+}
