@@ -33,6 +33,16 @@ enum RunStatus {
   FAILED
 }
 
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum MessageKind {
+  TEXT
+  VOICE
+}
+
 /// Реестр проектов. Сидируется из server/registry/projects.ts при каждом ingest.
 /// Единственный источник истины об атрибуции, регионе и комиссии.
 model Project {
@@ -115,4 +125,31 @@ model IngestRun {
   chunksTotal     Int        @default(0)
   needsOcr        Int        @default(0)
   log             String     @default("")
+}
+
+/// Диалог с агентом — один на Telegram-чат. История для admin (Часть 2).
+model Dialog {
+  id        String    @id @default(cuid())
+  tgChatId  BigInt    @unique
+  tgUserId  BigInt?
+  username  String?
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/// Сообщение в диалоге. transcript заполняется для голосовых (Часть 3).
+model Message {
+  id         String      @id @default(cuid())
+  dialogId   String
+  dialog     Dialog      @relation(fields: [dialogId], references: [id], onDelete: Cascade)
+  role       MessageRole
+  kind       MessageKind @default(TEXT)
+  text       String
+  transcript String? // распознанный текст голосового (role=USER, kind=VOICE)
+  intent     String? // определённый интент (role=USER)
+  projectIds String[] // проекты, к которым отнесён вопрос (role=USER)
+  createdAt  DateTime    @default(now())
+
+  @@index([dialogId])
 }
