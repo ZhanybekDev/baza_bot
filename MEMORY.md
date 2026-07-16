@@ -45,10 +45,14 @@
 
 ## В работе сейчас
 
-- **Часть 1 готова по коду, бот живой локально.** Осталось внешнее (требует решения пользователя):
-  - **GitHub-репозиторий** — создать и запушить (ТЗ требует; заблокировано auto-mode до решения пользователя об аккаунте/видимости).
-  - **Постоянный хостинг** — сейчас бот на локальной машине; для сдачи деплой на домашний сервер (long polling, Docker prod stack готов).
-- **Токен бота** `@baza_parthners_bot` в `.env` (id 8718895181).
+- **Часть 1 ТЗ ЗАВЕРШЕНА И ЗАДЕПЛОЕНА.**
+  - Бот `@baza_parthners_bot` работает **на домашнем сервере** (Docker, long polling, `restart: unless-stopped`, автозапуск после перезагрузки). БД prod наполнена дампом (642 чанка, 13 проектов).
+  - GitHub (публичный): https://github.com/ZhanybekDev/baza_bot — 17 коммитов, README, весь контекст.
+- **Деплой-уроки** (для Части 2, тот же сервер):
+  - Образ собирать под **`--platform=linux/amd64`** (Mac ARM ≠ сервер x86_64, иначе `exec format error`), затем `docker save`/`load` (сервер не тянет сборку).
+  - `pnpm minimumReleaseAge` блокировал свежие Vue-пакеты — exclude-список в `pnpm-workspace.yaml` (защита сохранена).
+  - Dockerfile: `install --ignore-scripts` (postinstall требует schema), openssl (Prisma engine), dummy `DATABASE_URL` для build-time generate, без `tsconfig.json` (extends `.nuxt`).
+  - Сервер: `docker-compose.prod.yml` + `docker-compose.deploy.yml` (override `image:` вместо `build:`, не в git). SSH через Tailscale `<SERVER_HOST>`.
 - Далее по ТЗ: **Часть 2** (админка shadcn), **Часть 3** (страница Figma) — когда пользователь скажет.
 
 ---
