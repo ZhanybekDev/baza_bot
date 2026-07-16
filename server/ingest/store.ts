@@ -1,12 +1,10 @@
-import { createHash, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import pgvector from 'pgvector'
 import { prisma } from '../db/client.js'
 import { PROJECTS } from '../registry/projects.js'
 import type { ChunkInput } from './chunk.js'
 
-export function contentHash(text: string): string {
-  return createHash('sha256').update(text, 'utf8').digest('hex')
-}
+export { contentHash } from './hash.js'
 
 /** Сид реестра проектов в БД. Идемпотентно — upsert по id. */
 export async function seedProjects(): Promise<void> {

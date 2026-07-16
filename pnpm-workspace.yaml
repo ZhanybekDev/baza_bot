@@ -1,3 +1,5 @@
+allowBuilds:
+  prisma: set this to true or false
 minimumReleaseAgeExclude:
   - '@vue/compiler-core@3.5.40'
   - '@vue/compiler-dom@3.5.40'
