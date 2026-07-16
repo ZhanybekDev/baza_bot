@@ -1,5 +1,12 @@
-allowBuilds:
-  prisma: set this to true or false
+# Пакеты, которым разрешён postinstall build script (в pnpm 11 — здесь, не в package.json).
+onlyBuiltDependencies:
+  - prisma
+  - '@prisma/client'
+  - esbuild
+
+# supply-chain minimumReleaseAge остаётся включённым. Свежие релизы Vue 3.5.40 и
+# fast-xml-parser (моложе порога) — точечно исключены, как предложил pnpm при install.
+# Целостность гарантируется integrity-хешами в pnpm-lock.yaml.
 minimumReleaseAgeExclude:
   - '@vue/compiler-core@3.5.40'
   - '@vue/compiler-dom@3.5.40'
