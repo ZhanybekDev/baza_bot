@@ -61,8 +61,15 @@
   - `pnpm minimumReleaseAge` блокировал свежие Vue-пакеты — exclude-список в `pnpm-workspace.yaml` (защита сохранена).
   - Dockerfile: `install --ignore-scripts` (postinstall требует schema), openssl (Prisma engine), dummy `DATABASE_URL` для build-time generate, без `tsconfig.json` (extends `.nuxt`).
   - Сервер: `docker-compose.prod.yml` + `docker-compose.deploy.yml` (override `image:` вместо `build:`, не в git). SSH через Tailscale `<SERVER_HOST>`.
-- **Часть 2 (админка)** — код готов на `feat/admin`, образ собран. Осталось (руками, с пользователем, ~10 мин): перенести образ на сервер (`docker save|ssh docker load`), `up -d admin`, ingress-правило в Cloudflare Tunnel → публичная ссылка, Cloudflare Access перед панелью (авторизации у неё нет). Шаги — `docs/deploy-admin.md`.
-- **Часть 3 (Figma)** — ждёт авторизацию Figma MCP пользователем (OAuth в браузере), затем страницу собрать по макету Elvikom `node-id=0-1`.
+- **Часть 2 (админка)** — код готов на `feat/admin` (запушен на GitHub), образ `baza-bot-admin:prod` (linux/amd64, 5GB на диске / ~1.2GB manifest) собран и **прошёл runtime smoke-тест**: контейнер стартует (`Listening :3000`), `/admin`→200, `/api/admin/sources` отдаёт данные из БД (host.docker.internal:5433). Осталось (руками, с пользователем, ~10 мин): перенести образ на сервер (`docker save|ssh docker load`), в `admin`-сервисе заменить `build:`→`image: baza-bot-admin:prod`, `up -d admin`, ingress-правило в Cloudflare Tunnel → публичная ссылка, Cloudflare Access перед панелью (авторизации у неё нет). Шаги — `docs/deploy-admin.md`.
+- **Часть 3 (Figma) — ЗАБЛОКИРОВАНА на доступе к файлу, ждём дубликат.**
+  - OAuth Figma MCP **пройден** (аккаунт `zhanybek.dev@gmail.com`, план **starter**, место **View**).
+  - **Блокер:** MCP читает только файлы из плана, к которому принадлежит пользователь. Макет Elvikom — файл провайдера теста, расшарен по view-ссылке → все read-инструменты (`get_metadata`/`get_screenshot`/`get_design_context`) отдают «don't have edit access».
+  - **Лимит:** starter + View = **6 MCP read-вызовов / месяц**. Экономить: строить страницу за 1–2 вызова `get_design_context` (возвращает код + скриншот + ассеты одним ответом).
+  - **Обход (пользователь делает):** открыть Elvikom → «Duplicate to your drafts» → открыть копию → выделить главный фрейм → «Copy link to selection» → прислать ссылку. Копия принадлежит его плану → MCP прочитает. Это НЕ скриншот (полная копия слоёв) — требование ТЗ соблюдено.
+  - **Fallback если Duplicate запрещён:** попросить владельца добавить `zhanybek.dev@gmail.com` редактором.
+  - **Оригинал:** `https://www.figma.com/design/mMFsEO7Xev6PZPkUa1QoPe/Elvikom?node-id=0-1` (fileKey `mMFsEO7Xev6PZPkUa1QoPe`, nodeId `0:1`). Дубликат будет с ДРУГИМ fileKey.
+  - **Next после ссылки на дубликат:** `get_design_context(fileKey, nodeId, clientFrameworks='vue,nuxt')` → адаптировать в страницу Nuxt (app/pages/…), ассеты скачать, собрать, проверить `nuxt build`.
 - **Доступ к серверу проверен:** ping + SSH-порт 22 открыты через Tailscale `<SERVER_HOST>` (заметка «Tailscale не поднят» — устарела). SSH-пользователь в проекте не задокументирован — спросить у пользователя.
 
 ---
@@ -114,11 +121,15 @@
 
 ## Последняя сессия — summary
 
-- **Дата:** 2026-07-16 (ночная автономная сессия)
-- **Что делали:** Часть 2 (админка) целиком — 3 страницы + 4 API, shadcn-vue, все гейты зелёные, деплой-артефакты + образ + runbook. Обновлён MEMORY.
-- **Что не успели:** публичный деплой админки (нужен SSH-юзер + Cloudflare Tunnel — с пользователем); Часть 3 (Figma OAuth — нужен браузер пользователя).
-- **Блокеры:** SSH-юзер сервера не задокументирован; Figma MCP не авторизован.
-- **Next:** утром — задеплоить админку по `docs/deploy-admin.md` (спросить SSH-юзер), авторизовать Figma MCP → собрать Часть 3, влить `feat/admin` в `main`, запушить на GitHub.
+- **Дата:** 2026-07-16 → 17
+- **Что делали:**
+  - Часть 2 (админка) доведена до конца: 3 страницы + 4 API (shadcn-vue), гейты зелёные (eslint 0, vue-tsc 0, nuxt build OK), образ собран + runtime smoke-тест пройден, `feat/admin` на GitHub, runbook `docs/deploy-admin.md`.
+  - Часть 3 (Figma): OAuth MCP пройден; уперлись в доступ к чужому файлу + лимит 6/мес (см. блок «В работе сейчас»). Пользователь дублирует Elvikom в свои Drafts, ждём ссылку на копию.
+- **Блокеры для следующей сессии:**
+  1. **Figma:** ждём от пользователя ссылку на дубликат макета (Copy link to selection главного фрейма) → `get_design_context` → собрать страницу Nuxt. Экономить вызовы (лимит 6/мес).
+  2. **Деплой админки:** нужен SSH-юзер сервера (`…@<SERVER_HOST>`) + ingress-правило Cloudflare Tunnel — сделать с пользователем по `docs/deploy-admin.md`.
+- **Next (порядок):** (1) получить ссылку на дубликат Figma → Часть 3. (2) Задеплоить админку → публичная ссылка. (3) Влить `feat/admin`→`main`, запушить. (4) Финальная проверка 3 ссылок.
+- **Важно:** dev-сервер админки жив на `http://localhost:3009/admin`; caffeinate держит Mac; образ `baza-bot-admin:prod` уже в локальном docker (готов к `docker save`).
 
 ---
 
