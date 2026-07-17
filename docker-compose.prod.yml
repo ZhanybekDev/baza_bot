@@ -50,5 +50,19 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?}
     restart: unless-stopped
 
+  # Админка (Часть 2). Порт слушает только на localhost — наружу выставляется
+  # через Cloudflare Tunnel (у панели нет своей авторизации, публичный доступ —
+  # только через туннель / Cloudflare Access).
+  admin:
+    build: { context: ., dockerfile: Dockerfile.admin }
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgresql://baza:${POSTGRES_PASSWORD}@db:5432/baza_bot?schema=public
+      BOTHUB_API_KEY: ${BOTHUB_API_KEY:?}
+      BOTHUB_BASE_URL: ${BOTHUB_BASE_URL:-https://bothub.chat/api/v2/openai/v1}
+    ports:
+      - '127.0.0.1:3000:3000'
+    restart: unless-stopped
+
 volumes:
   baza_bot_prod_pgdata:

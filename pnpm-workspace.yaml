@@ -3,6 +3,7 @@ onlyBuiltDependencies:
   - prisma
   - '@prisma/client'
   - esbuild
+  - vue-demi
 
 # supply-chain minimumReleaseAge остаётся включённым. Свежие релизы Vue 3.5.40 и
 # fast-xml-parser (моложе порога) — точечно исключены, как предложил pnpm при install.
@@ -19,3 +20,23 @@ minimumReleaseAgeExclude:
   - '@vue/shared@3.5.40'
   - fast-xml-parser@5.10.1
   - vue@3.5.40
+  - '@tailwindcss/node@4.3.3'
+  - '@tailwindcss/oxide-android-arm64@4.3.3'
+  - '@tailwindcss/oxide-darwin-arm64@4.3.3'
+  - '@tailwindcss/oxide-darwin-x64@4.3.3'
+  - '@tailwindcss/oxide-freebsd-x64@4.3.3'
+  - '@tailwindcss/oxide-linux-arm-gnueabihf@4.3.3'
+  - '@tailwindcss/oxide-linux-arm64-gnu@4.3.3'
+  - '@tailwindcss/oxide-linux-arm64-musl@4.3.3'
+  - '@tailwindcss/oxide-linux-x64-gnu@4.3.3'
+  - '@tailwindcss/oxide-linux-x64-musl@4.3.3'
+  - '@tailwindcss/oxide-wasm32-wasi@4.3.3'
+  - '@tailwindcss/oxide-win32-arm64-msvc@4.3.3'
+  - '@tailwindcss/oxide-win32-x64-msvc@4.3.3'
+  - '@tailwindcss/oxide@4.3.3'
+  - '@tailwindcss/vite@4.3.3'
+  - tailwindcss@4.3.3
+  - shadcn-nuxt@2.8.0
+
+allowBuilds:
+  vue-demi: true
