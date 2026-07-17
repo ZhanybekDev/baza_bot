@@ -2,10 +2,16 @@ import { PROJECTS, type ProjectDef, type Region } from '../registry/projects.js'
 import { formatManager, formatBothManagers } from './managers.js'
 import { partnerPage, MORTGAGE_GENERAL, CALL_CENTER, BROKER_BOT, DISCLAIMER } from './links.js'
 
+// Проценты в источнике (партнёрский портал) записаны с запятой — «2,6%». Реестр
+// хранит их как number, поэтому при выводе возвращаем запятую (hard-rule #15).
+function pct(n: number): string {
+  return `${String(n).replace('.', ',')}%`
+}
+
 function formatFee(p: ProjectDef): string {
   if (!p.fee) return 'уточните у менеджера'
-  let s = `${p.fee.base}%`
-  if (p.fee.bonus) s += ` + ещё ${p.fee.bonus}% на выбор (${p.fee.bonusRule})`
+  let s = pct(p.fee.base)
+  if (p.fee.bonus) s += ` + ещё ${pct(p.fee.bonus)} на выбор (${p.fee.bonusRule})`
   return s
 }
 

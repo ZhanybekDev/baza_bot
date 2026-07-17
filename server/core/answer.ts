@@ -48,7 +48,7 @@ export async function answer(question: string): Promise<AnswerResult> {
     if (chunks.length === 0) {
       return { text: dontKnowAnswer(r.region), intent: null, projectIds, usedLlm: false }
     }
-    return { text: await llmAnswer(question, chunks), intent: null, projectIds, usedLlm: true }
+    return { text: await llmAnswer(question, chunks, developer.map((p) => p.name)), intent: null, projectIds, usedLlm: true }
   }
 
   // 3. Проект не назван — глобальный векторный поиск с порогом «не знаю».
@@ -83,7 +83,7 @@ async function resolveIntent(question: string, r: Route, projectIds: string[]): 
         ? await retrieveByProjects(r.projects.map((p) => p.id), question)
         : await retrieveGlobal(question, 8)
       if (chunks.length === 0) return { text: dontKnowAnswer(r.region), ...base, usedLlm: false }
-      return { text: await llmAnswer(question, chunks), ...base, usedLlm: true }
+      return { text: await llmAnswer(question, chunks, r.projects.map((p) => p.name)), ...base, usedLlm: true }
     }
     default: {
       const exhaustive: never = intent.id
@@ -92,6 +92,6 @@ async function resolveIntent(question: string, r: Route, projectIds: string[]): 
   }
 }
 
-async function llmAnswer(question: string, chunks: RetrievedChunk[]): Promise<string> {
-  return chat(SYSTEM_PROMPT, buildUserPrompt(question, chunks))
+async function llmAnswer(question: string, chunks: RetrievedChunk[], projectNames: string[] = []): Promise<string> {
+  return chat(SYSTEM_PROMPT, buildUserPrompt(question, chunks, projectNames))
 }
