@@ -14,6 +14,7 @@
     "postinstall": "nuxt prepare && prisma generate",
     "ingest": "tsx server/ingest/run.ts",
     "bot": "tsx server/bot/run.ts",
+    "acceptance": "tsx server/scripts/acceptance.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "test": "vitest run",

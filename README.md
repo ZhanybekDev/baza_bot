@@ -137,3 +137,5 @@ Long polling — публичный HTTPS/webhook не нужен, бот раб
 - `.claude/reviews/` — 13 раундов adversarial-ревью плана.
 
 Тесты: `pnpm test` (30 unit). Гейты: `pnpm lint && pnpm typecheck`.
+
+Acceptance-прогон бота по ключевым тест-кейсам заказчика (против наполненной БД, нужны `DATABASE_URL` + `BOTHUB_API_KEY`): `pnpm acceptance` — проверяет факты, дословность цифр, честное «не знаю», роутинг проекта и дисклеймер (11/11 на проде).
