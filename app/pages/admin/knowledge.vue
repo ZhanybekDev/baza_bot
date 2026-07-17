@@ -8,7 +8,17 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~
 
 const page = ref(1)
 const projectId = ref('')
-const search = ref('')
+const searchInput = ref('') // то, что печатает пользователь
+const search = ref('') // дебаунснутое значение, по нему идёт запрос
+
+// Без дебаунса useFetch бил бы запросом с ILIKE-сканом на каждый символ.
+const SEARCH_DEBOUNCE_MS = 350
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+watch(searchInput, (v) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => { search.value = v }, SEARCH_DEBOUNCE_MS)
+})
+onScopeDispose(() => { if (searchTimer) clearTimeout(searchTimer) })
 
 const query = computed(() => ({ page: page.value, projectId: projectId.value, search: search.value }))
 const { data, pending } = await useFetch('/api/admin/knowledge', { query })
@@ -36,7 +46,7 @@ const projects = computed(() => data.value?.projects ?? [])
         </select>
         <div class="relative flex-1 min-w-48">
           <Search class="text-muted-foreground absolute left-2.5 top-2.5 size-4" />
-          <Input v-model="search" placeholder="Поиск по содержимому…" class="pl-8" />
+          <Input v-model="searchInput" placeholder="Поиск по содержимому…" class="pl-8" />
         </div>
       </CardContent>
     </Card>

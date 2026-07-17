@@ -55,7 +55,13 @@ function log(line: string): void {
 }
 
 async function main(): Promise<void> {
-  const run = await prisma.ingestRun.create({ data: { status: 'RUNNING' } })
+  // Запуск из админки (кнопка «переобновить») атомарно резервирует запись прогона и
+  // передаёт её id — переиспользуем, чтобы не плодить вторую RUNNING. CLI-запуск
+  // (`pnpm ingest` вручную) переменной не имеет — создаёт свою.
+  const preId = process.env.INGEST_RUN_ID
+  const run = preId
+    ? await prisma.ingestRun.findUniqueOrThrow({ where: { id: preId } })
+    : await prisma.ingestRun.create({ data: { status: 'RUNNING' } })
   const c: Counters = {
     sourcesTotal: 0,
     sourcesOk: 0,
