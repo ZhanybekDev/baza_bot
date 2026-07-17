@@ -16,6 +16,9 @@ COPY prisma ./prisma
 COPY prisma.config.ts nuxt.config.ts components.json ./
 COPY server ./server
 COPY app ./app
+# public/ содержит ассеты Figma-страницы (/figma/*.svg|png) — без них vite build падает
+# на резолве `/figma/cellular.svg` из elvikom.vue.
+COPY public ./public
 
 # prisma generate не ходит в БД, но prisma.config.ts резолвит DATABASE_URL при загрузке —
 # заглушка на время сборки; реальный URL приходит в runtime через compose.
