@@ -40,7 +40,12 @@ baza_bot/
 │   │   └── stt.ts                # Soniox stt-async-v5 (Phase 3)
 │   ├── api/telegram.post.ts      # grammY webhook
 │   └── plugins/bot.ts            # инициализация бота
-├── app/                          # Nuxt 4 UI (Часть 2 — админка, Часть 3 — Figma-страница)
+├── app/                          # Nuxt 4 UI
+│   ├── pages/admin/              # Часть 2 — админка (shadcn-vue): sources, knowledge, dialogs
+│   ├── pages/elvikom.vue         # Часть 3 — экран из Figma (node 932:22716), layout:false
+│   ├── layouts/default.vue       # admin-навбар
+│   └── assets/css/tailwind.css   # Tailwind v4 + @fontsource Inter/Unbounded
+├── public/figma/                 # ассеты макета (3D-иконки PNG, QR/лого/статусбар SVG)
 ├── .env.example
 ├── README.md                     # инструкция запуска + обоснование архитектуры + таблица замеров
 └── .claude/                      # план, research, reviews, rules (в репо — требование ТЗ)

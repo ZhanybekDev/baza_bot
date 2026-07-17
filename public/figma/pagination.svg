@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 48 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Compact Pagination">
+<circle id="Dot" cx="8" cy="8" r="4" fill="var(--fill-0, #6C8DAF)"/>
+<circle id="Dot_2" opacity="0.1" cx="24" cy="8" r="4" fill="var(--fill-0, #6C8DAF)"/>
+<circle id="Dot_3" opacity="0.1" cx="40" cy="8" r="4" fill="var(--fill-0, #6C8DAF)"/>
+</g>
+</svg>

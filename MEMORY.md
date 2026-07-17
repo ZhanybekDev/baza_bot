@@ -2,7 +2,7 @@
 
 Живой контекст проекта. Внешняя память Claude между сессиями. Пополняется **в конце каждой задачи**.
 
-**Последнее обновление:** 2026-07-16
+**Последнее обновление:** 2026-07-17
 
 ---
 
@@ -34,6 +34,14 @@
 
 ## Сделано (recent)
 
+- **2026-07-17** — **Часть 3 ТЗ (страница из Figma) — ГОТОВА** (ветка `feat/figma-page` от `feat/admin`):
+  - Экран «Главный экран» (Figma node `932:22716`, самый полный из 6 вариантов) собран через **Figma MCP** (`get_design_context`), маршрут **`/elvikom`** (`app/pages/elvikom.vue`, `layout:false`).
+  - Доступ к оригиналу Elvikom **разблокирован** (владелец выдал доступ) — дубликат не понадобился; читали оригинальный fileKey `mMFsEO7Xev6PZPkUa1QoPe`.
+  - 17 ассетов → `public/figma/` (3D-иконки PNG, QR/лого/статусбар SVG). Шрифты Inter+Unbounded самохостом (`@fontsource-variable/*`).
+  - Правки руками: логотип BAZA (SVG `preserveAspectRatio=none` + absolute inset → intrinsic-высота, растягивался → flex-стек с явными габаритами); `ellipsis.circle` (SFSymbol-плейсхолдер → lucide `Ellipsis`); iOS-статусбар (SF Pro не встроен → системный шрифт + батарея из div'ов).
+  - Гейты зелёные: eslint 0, vue-tsc 0, `nuxt build` OK. Визуально сверено Playwright-скриншотом 390×844 — совпадает с макетом.
+  - README дополнен разделом «Часть 3 … через Figma MCP» (что MCP отдал / что правил руками / лимиты).
+  - **Грабли pnpm 11:** `pnpm add` дописывает в `pnpm-workspace.yaml` блок `allowBuilds:` с плейсхолдером `set this to true or false` — verify перед `pnpm <script>` падает с `ERR_PNPM_IGNORED_BUILDS`. Фикс: заменить на `vue-demi: true` (или убрать блок и держать в `onlyBuiltDependencies`).
 - **2026-07-16 (ночь)** — **Часть 2 ТЗ (админка) — код готов, собран, все гейты зелёные** (ветка `feat/admin`, 2 коммита):
   - shadcn-vue (new-york, neutral, Tailwind v4) — UI-компоненты написаны вручную (CLI shadcn падал на несуществующем `@lucide/vue`).
   - 3 страницы: `/admin` (источники + статус парсинга + кнопка «переобновить» с поллингом), `/admin/knowledge` (чанки по проектам, фильтр+поиск, пагинация), `/admin/dialogs` (история диалогов).
@@ -62,14 +70,8 @@
   - Dockerfile: `install --ignore-scripts` (postinstall требует schema), openssl (Prisma engine), dummy `DATABASE_URL` для build-time generate, без `tsconfig.json` (extends `.nuxt`).
   - Сервер: `docker-compose.prod.yml` + `docker-compose.deploy.yml` (override `image:` вместо `build:`, не в git). SSH через Tailscale `<SERVER_HOST>`.
 - **Часть 2 (админка)** — код готов на `feat/admin` (запушен на GitHub), образ `baza-bot-admin:prod` (linux/amd64, 5GB на диске / ~1.2GB manifest) собран и **прошёл runtime smoke-тест**: контейнер стартует (`Listening :3000`), `/admin`→200, `/api/admin/sources` отдаёт данные из БД (host.docker.internal:5433). Осталось (руками, с пользователем, ~10 мин): перенести образ на сервер (`docker save|ssh docker load`), в `admin`-сервисе заменить `build:`→`image: baza-bot-admin:prod`, `up -d admin`, ingress-правило в Cloudflare Tunnel → публичная ссылка, Cloudflare Access перед панелью (авторизации у неё нет). Шаги — `docs/deploy-admin.md`.
-- **Часть 3 (Figma) — ЗАБЛОКИРОВАНА на доступе к файлу, ждём дубликат.**
-  - OAuth Figma MCP **пройден** (аккаунт `zhanybek.dev@gmail.com`, план **starter**, место **View**).
-  - **Блокер:** MCP читает только файлы из плана, к которому принадлежит пользователь. Макет Elvikom — файл провайдера теста, расшарен по view-ссылке → все read-инструменты (`get_metadata`/`get_screenshot`/`get_design_context`) отдают «don't have edit access».
-  - **Лимит:** starter + View = **6 MCP read-вызовов / месяц**. Экономить: строить страницу за 1–2 вызова `get_design_context` (возвращает код + скриншот + ассеты одним ответом).
-  - **Обход (пользователь делает):** открыть Elvikom → «Duplicate to your drafts» → открыть копию → выделить главный фрейм → «Copy link to selection» → прислать ссылку. Копия принадлежит его плану → MCP прочитает. Это НЕ скриншот (полная копия слоёв) — требование ТЗ соблюдено.
-  - **Fallback если Duplicate запрещён:** попросить владельца добавить `zhanybek.dev@gmail.com` редактором.
-  - **Оригинал:** `https://www.figma.com/design/mMFsEO7Xev6PZPkUa1QoPe/Elvikom?node-id=0-1` (fileKey `mMFsEO7Xev6PZPkUa1QoPe`, nodeId `0:1`). Дубликат будет с ДРУГИМ fileKey.
-  - **Next после ссылки на дубликат:** `get_design_context(fileKey, nodeId, clientFrameworks='vue,nuxt')` → адаптировать в страницу Nuxt (app/pages/…), ассеты скачать, собрать, проверить `nuxt build`.
+- **Часть 3 (Figma) — ГОТОВА (код).** Ветка `feat/figma-page`. Доступ к оригиналу Elvikom выдан владельцем — читали fileKey `mMFsEO7Xev6PZPkUa1QoPe` напрямую, дубликат не понадобился. Экран `/elvikom` собран, гейты зелёные, README дополнен. Осталось только задеплоить (см. деплой ниже) → публичная ссылка №3.
+  - Аккаунт `zhanybek.dev@gmail.com`, план **starter / View**, лимит ~**6 MCP read/мес** — потратили 3 (2× `get_metadata` + 1× `get_design_context`).
 - **Доступ к серверу проверен:** ping + SSH-порт 22 открыты через Tailscale `<SERVER_HOST>` (заметка «Tailscale не поднят» — устарела). SSH-пользователь в проекте не задокументирован — спросить у пользователя.
 
 ---
