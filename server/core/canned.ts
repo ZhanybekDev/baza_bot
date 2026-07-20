@@ -78,6 +78,25 @@ export function baliAnswer(projects: ProjectDef[]): string {
   ].join('\n')
 }
 
+/** Полный список проектов BAZA по группам — из реестра, чтобы не расходился с истиной. */
+export function projectsListAnswer(): string {
+  const dev = (region: Region) =>
+    PROJECTS.filter((p) => p.kind === 'DEVELOPER' && p.region === region)
+      .map((p) => p.name)
+      .join(', ')
+  const agency = PROJECTS.filter((p) => p.kind === 'AGENCY')
+    .map((p) => p.name)
+    .join(', ')
+  return [
+    'Проекты BAZA Development:',
+    '',
+    `Застройщик, Екатеринбург: ${dev('EKB')}.`,
+    `Застройщик, Москва: ${dev('MSK')}.`,
+    `Реализуем как агентство недвижимости: ${agency}.`,
+    `Застройщик, Бали: ${dev('BALI')}.`,
+  ].join('\n')
+}
+
 export function dontKnowAnswer(region: Region): string {
   return `Не нашёл точной информации по вашему вопросу в базе знаний. Чтобы не ввести вас в заблуждение — уточните у менеджера:\n${formatManager(region)}`
 }

@@ -43,7 +43,15 @@ describe('detectIntent', () => {
     expectIntent('любые возражения клиента', 'objections')
   })
 
-  it('should_return_null_for_content_questions', () => {
+  it('should_detect_projects_list', () => {
+    expectIntent('какие у вас проекты', 'projects')
+    expectIntent('перечисли все ЖК', 'projects')
+    expectIntent('список проектов BAZA', 'projects')
+    expectIntent('что вы строите', 'projects')
+  })
+
+  it('should_not_treat_project_scoped_questions_as_projects_list', () => {
+    // «расскажи про ЖК X» и «какая отделка в ЖК X» — контентные, не список.
     expectIntent('Какая отделка квартир в ЖК Алиса?', null)
     expectIntent('Расскажи про ЖК ДМД2?', null)
   })

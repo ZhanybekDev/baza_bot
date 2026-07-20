@@ -175,7 +175,10 @@ function aliasMatches(alias: string, tokens: string[], stems: string[]): boolean
   return aliasWords.every((aw) => {
     if (aw.length <= 4) return tokens.includes(aw.toLowerCase().replace(/ё/g, 'е'))
     const base = stem(aw)
-    return stems.some((s) => s.startsWith(base) || base.startsWith(s))
+    // base.startsWith(s) — для случая, когда слово в тексте короче основы алиаса.
+    // Но короткие токены (предлоги «к», «в», «из») иначе ловят алиасы по первой букве:
+    // «К кому...» → «кидунг» (Kedungu). Требуем осмысленную длину совпадения.
+    return stems.some((s) => s.startsWith(base) || (s.length >= 4 && base.startsWith(s)))
   })
 }
 

@@ -12,6 +12,7 @@ import {
   agencyAnswer,
   baliAnswer,
   dontKnowAnswer,
+  projectsListAnswer,
 } from './canned.js'
 
 // Косинусное расстояние выше порога → в базе нет релевантного → честное «не знаю».
@@ -77,6 +78,8 @@ async function resolveIntent(question: string, r: Route, projectIds: string[]): 
       return { text: dealAnswer(), ...base, usedLlm: false }
     case 'contacts':
       return { text: contactsAnswer(r.region, r.hasNamedProject), ...base, usedLlm: false }
+    case 'projects':
+      return { text: projectsListAnswer(), ...base, usedLlm: false }
     case 'objections': {
       // Возражения — материал в базе (docx Бестселлера). RAG по вопросу.
       const chunks = r.hasNamedProject
