@@ -48,6 +48,7 @@ services:
       BOTHUB_API_KEY: ${BOTHUB_API_KEY:?}
       BOTHUB_BASE_URL: ${BOTHUB_BASE_URL:-https://bothub.chat/api/v2/openai/v1}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?}
+      SONIOX_API_KEY: ${SONIOX_API_KEY:?set SONIOX_API_KEY for voice transcription}
     restart: unless-stopped
 
   # Админка (Часть 2). Порт слушает только на localhost — наружу выставляется
