@@ -34,7 +34,7 @@
 
 ## Сделано (recent)
 
-- **2026-07-20** — **Голос на проде не работал → починено.** Симптом: бот на голосовое отвечал «Не удалось распознать…». Диагностика по логам прод-контейнера: `Error: SONIOX_API_KEY is required but not set` в `stt.ts` (не код — env). Корень: сервис `bot` в `docker-compose.prod.yml` прокидывал `BOTHUB`/`TELEGRAM`, но **не `SONIOX_API_KEY`**, и ключа не было в серверном `.env`. Текст работал (bothub был), голос падал на первом шаге `transcribe()`. Фикс: добавил `SONIOX_API_KEY: ${SONIOX_API_KEY:?}` в env бот-сервиса (репо) + ключ в серверный `.env`, пересоздал контейнер `bot`. Проверено: ключ в контейнере `…a847e43ad`, egress Soniox HTTP 200, голос вживую отвечает. Локально флоу `transcribe()` изначально был исправен (прогон живого OGG → 2.9с).
+- **2026-07-20** — **Голос на проде не работал → починено.** Симптом: бот на голосовое отвечал «Не удалось распознать…». Диагностика по логам прод-контейнера: `Error: SONIOX_API_KEY is required but not set` в `stt.ts` (не код — env). Корень: сервис `bot` в `docker-compose.prod.yml` прокидывал `BOTHUB`/`TELEGRAM`, но **не `SONIOX_API_KEY`**, и ключа не было в серверном `.env`. Текст работал (bothub был), голос падал на первом шаге `transcribe()`. Фикс: добавил `SONIOX_API_KEY: ${SONIOX_API_KEY:?}` в env бот-сервиса (репо) + ключ в серверный `.env`, пересоздал контейнер `bot`. Проверено: ключ в контейнере `…‹хвост скрыт›`, egress Soniox HTTP 200, голос вживую отвечает. Локально флоу `transcribe()` изначально был исправен (прогон живого OGG → 2.9с).
 
 - **2026-07-18** — **Code-review (high recall) по всему коду сессии → 6 находок, все исправлены и задеплоены.** Все в админке (Часть 2):
   - reingest: TOCTOU «два клика → два ingest» → атомарное резервирование прогона (Serializable-транзакция), `INGEST_RUN_ID` переиспользуется в `run.ts`, обработка ошибки spawn + staleness 30мин против зависшего RUNNING.
@@ -78,14 +78,14 @@
 
 - **2026-07-17: ЗАДЕПЛОЕНО — три живые ссылки для сдачи ТЗ:**
   1. **Бот:** `@baza_parthners_bot` (Telegram, long polling, `baza_bot-bot-1`).
-  2. **Админка:** **https://baza-admin.ssi-dev.com** (`/` → `/admin`). Публично, без авторизации (решение владельца).
-  3. **Figma-страница:** **https://baza.ssi-dev.com/elvikom**. Публично.
+  2. **Админка:** **https://baza-admin.example.com** (`/` → `/admin`). Публично, без авторизации (решение владельца).
+  3. **Figma-страница:** **https://baza.example.com/elvikom**. Публично.
   - Отправить в Telegram **@yes300sir** (три ссылки + репо https://github.com/ZhanybekDev/baza_bot).
 - **Как устроен деплой админки+Figma (Часть 2+3):**
   - Один Nuxt-контейнер `baza_bot-admin-1` (образ `baza-bot-admin:prod`, `Dockerfile.admin` — playwright-база для reingest под xvfb) отдаёт и `/admin`, и `/elvikom`, порт `127.0.0.1:3000`.
   - Образ **собран на самом сервере** (`docker build --network=host`, диск 852G) — локальный Docker Desktop не поднят, а перенос 5GB не нужен. Кэш слоёв ускоряет пересборку.
   - Запуск: `docker compose -f docker-compose.prod.yml -f docker-compose.deploy.yml up -d admin`. `docker-compose.deploy.yml` (на сервере, не в git) переопределяет `bot`/`migrate`/**`admin`** на `image:`.
-  - **Cloudflare Tunnel `other-project-1`** (файловый `/etc/cloudflared/config.yml`, домен `ssi-dev.com`): добавлены ingress `baza-admin.ssi-dev.com`→`:3000` и `baza.ssi-dev.com`→`:3000`; `cloudflared tunnel route dns other-project-1 <host>` создаёт CNAME (нужен `~/.cloudflared/cert.pem`); `sudo systemctl restart cloudflared`.
+  - **Cloudflare Tunnel `other-project-1`** (файловый `/etc/cloudflared/config.yml`, домен `example.com`): добавлены ingress `baza-admin.example.com`→`:3000` и `baza.example.com`→`:3000`; `cloudflared tunnel route dns other-project-1 <host>` создаёт CNAME (нужен `~/.cloudflared/cert.pem`); `sudo systemctl restart cloudflared`.
   - **Грабли:** (1) `Dockerfile.admin` не копировал `public/` → vite падал на `/figma/*.svg` (фикс — `COPY public`, коммит `6e470f0`). (2) `git stash -u` на сервере утащил untracked `docker-compose.deploy.yml` — восстановил вручную. SSH: `ssh <user>@<SERVER_HOST>` (Tailscale, по ключу). Инструкция по серверу — `<личная инструкция по серверу, вне репо>` (с паролями, не коммитить).
 - **2026-07-17: `main` СОБРАН ПОЛНОСТЬЮ.** Части 2+3 влиты в `main` (merge `feat/figma-page` --no-ff, коммит `d5589d9`) и запушены. `origin/main` содержит все три части. Ревьюер видит всё в дефолтной ветке.
 - **Аудит по ТЗ (2026-07-17):** код всех 3 частей готов и на `main`. README покрывает архитектуру, Часть 2 (+обоснование `new-york` вместо депрекейтнутого `default`), Часть 3 (MCP).
