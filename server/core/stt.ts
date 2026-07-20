@@ -4,10 +4,28 @@
 // 🔴 Байты грузим через /v1/files (multipart), НЕ через audio_url: Telegram-ссылка
 // на файл содержит токен бота — отдать её Soniox значит отдать бота.
 
+import { PROJECTS } from '../registry/projects.js'
+
 const API = 'https://api.soniox.com'
 const MODEL = 'stt-async-v5'
 const POLL_INTERVAL_MS = 800
 const POLL_TIMEOUT_MS = 60_000
+
+// Soniox v5 «context.terms» смещает распознавание к доменным именам. Без него STT
+// перевирал имена ЖК («Алисе» → «Олесе»), из-за чего роутер терял проект.
+// Термины берём из реестра (имена + алиасы) — не разъезжаются с истиной.
+const DOMAIN_TERMS = [
+  'BAZA Development',
+  'ЖК',
+  'White Box',
+  'отделка',
+  'рассрочка',
+  'ипотека',
+  'вознаграждение',
+]
+const STT_CONTEXT_TERMS = [
+  ...new Set([...DOMAIN_TERMS, ...PROJECTS.flatMap((p) => [p.name, ...p.aliases])]),
+]
 
 function apiKey(): string {
   const key = process.env.SONIOX_API_KEY
@@ -45,7 +63,18 @@ async function createTranscription(fileId: string): Promise<string> {
   const res = await fetch(`${API}/v1/transcriptions`, {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, file_id: fileId, language_hints: ['ru'] }),
+    body: JSON.stringify({
+      model: MODEL,
+      file_id: fileId,
+      language_hints: ['ru'],
+      context: {
+        general: [
+          { key: 'domain', value: 'недвижимость' },
+          { key: 'topic', value: 'жилые комплексы застройщика BAZA Development' },
+        ],
+        terms: STT_CONTEXT_TERMS,
+      },
+    }),
   })
   if (!res.ok) throw new Error(`Soniox transcription create failed: ${res.status} ${await res.text()}`)
   const { id } = (await res.json()) as { id: string }
