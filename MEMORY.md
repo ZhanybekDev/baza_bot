@@ -101,7 +101,7 @@
   - Сервер: `docker-compose.prod.yml` + `docker-compose.deploy.yml` (override `image:` вместо `build:`, не в git). SSH через Tailscale `<SERVER_HOST>`.
 - **Часть 2 (админка)** — код готов на `feat/admin` (запушен на GitHub), образ `baza-bot-admin:prod` (linux/amd64, 5GB на диске / ~1.2GB manifest) собран и **прошёл runtime smoke-тест**: контейнер стартует (`Listening :3000`), `/admin`→200, `/api/admin/sources` отдаёт данные из БД (host.docker.internal:5433). Осталось (руками, с пользователем, ~10 мин): перенести образ на сервер (`docker save|ssh docker load`), в `admin`-сервисе заменить `build:`→`image: baza-bot-admin:prod`, `up -d admin`, ingress-правило в Cloudflare Tunnel → публичная ссылка, Cloudflare Access перед панелью (авторизации у неё нет). Шаги — `docs/deploy-admin.md`.
 - **Часть 3 (Figma) — ГОТОВА (код).** Ветка `feat/figma-page`. Доступ к оригиналу Elvikom выдан владельцем — читали fileKey `mMFsEO7Xev6PZPkUa1QoPe` напрямую, дубликат не понадобился. Экран `/elvikom` собран, гейты зелёные, README дополнен. Осталось только задеплоить (см. деплой ниже) → публичная ссылка №3.
-  - Аккаунт `zhanybek.dev@gmail.com`, план **starter / View**, лимит ~**6 MCP read/мес** — потратили 3 (2× `get_metadata` + 1× `get_design_context`).
+  - Аккаунт Figma — план **starter / View**, лимит ~**6 MCP read/мес** — потратили 3 (2× `get_metadata` + 1× `get_design_context`).
 - **Доступ к серверу проверен:** ping + SSH-порт 22 открыты через Tailscale `<SERVER_HOST>` (заметка «Tailscale не поднят» — устарела). SSH-пользователь в проекте не задокументирован — спросить у пользователя.
 
 ---
